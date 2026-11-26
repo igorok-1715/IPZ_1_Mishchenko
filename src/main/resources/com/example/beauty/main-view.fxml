@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.beauty.MainController"
+      alignment="CENTER" spacing="12" styleClass="root-pane">
+    <padding>
+        <Insets top="25" right="30" bottom="25" left="30"/>
+    </padding>
+
+    <Label fx:id="welcomeLabel" styleClass="title-label"/>
+
+    <!-- Вибір послуги -->
+    <ComboBox fx:id="accountTypeComboBox" promptText="Оберіть послугу" maxWidth="Infinity"/>
+
+    <!-- Вибір майстра (додано) -->
+    <ComboBox fx:id="masterComboBox" promptText="Оберіть майстра" maxWidth="Infinity"/>
+
+    <TextField fx:id="detailsField" promptText="Час запису"/>
+    <TextField fx:id="amountField" promptText="Сума (грн)" editable="false"/>
+
+    <Button fx:id="payButton" text="Pay" onAction="#onPay" styleClass="primary-button"/>
+
+    <HBox spacing="10" alignment="CENTER">
+        <Button text="Payment History" onAction="#onShowHistory" styleClass="secondary-button"/>
+        <Button text="Log Out" onAction="#onLogout" styleClass="secondary-button"/>
+    </HBox>
+</VBox>
