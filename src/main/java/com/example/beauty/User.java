@@ -3,18 +3,22 @@ package com.example.beauty;
 
 public class User {
 
+    private final int id;
     private final String username;
     private final String phone;
     private final String email;
-    private final String password;
 
-    public User(String username, String phone,
-                String email, String password) {
+    public User(int id, String username,
+                String phone, String email) {
 
+        this.id = id;
         this.username = username;
         this.phone = phone;
         this.email = email;
-        this.password = password;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getUsername() {
@@ -27,9 +31,5 @@ public class User {
 
     public String getEmail() {
         return email;
-    }
-
-    public String getPassword() {
-        return password;
     }
 }
