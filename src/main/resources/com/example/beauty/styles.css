@@ -85,3 +85,29 @@
 .table-row-cell:selected {
     -fx-background-color: #c7d2fe;
 }
+
+/* Фон заголовків таблиці */
+.table-view .column-header-background {
+    -fx-background-color: #5142cf;
+}
+
+/* Оформлення кожного заголовка */
+.table-view .column-header {
+    -fx-background-color: #5142cf;
+    -fx-border-color: #7568e5;
+    -fx-border-width: 0 1 0 0;
+    -fx-size: 38px;
+}
+
+/* Текст заголовків */
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-alignment: CENTER;
+}
+
+/* Фон залишкового простору заголовків */
+.table-view .filler {
+    -fx-background-color: #5142cf;
+}

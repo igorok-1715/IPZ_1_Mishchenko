@@ -3,22 +3,53 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
+<VBox xmlns="http://javafx.com/javafx/23"
+      xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.example.beauty.HistoryController"
-      alignment="CENTER" spacing="12" styleClass="root-pane">
+      alignment="CENTER"
+      spacing="12"
+      prefWidth="800"
+      styleClass="root-pane">
+
     <padding>
         <Insets top="25" right="30" bottom="25" left="30"/>
     </padding>
 
-    <Label text="Payment History" styleClass="title-label"/>
+    <Label text="Історія візитів"
+           styleClass="title-label"/>
 
-    <TableView fx:id="historyTable" prefHeight="220" maxWidth="Infinity">
+    <TableView fx:id="historyTable"
+               prefHeight="300"
+               maxWidth="Infinity">
+
         <columns>
-            <TableColumn fx:id="typeColumn" text="Bill Type" prefWidth="140"/>
-            <TableColumn fx:id="detailsColumn" text="Details" prefWidth="160"/>
-            <TableColumn fx:id="amountColumn" text="Amount" prefWidth="90"/>
+
+            <TableColumn fx:id="typeColumn"
+                         text="Послуга"
+                         prefWidth="150"/>
+
+            <TableColumn fx:id="masterColumn"
+                         text="Майстер"
+                         prefWidth="100"/>
+
+            <TableColumn fx:id="dateTimeColumn"
+                         text="Дата і час візиту"
+                         prefWidth="170"/>
+
+            <TableColumn fx:id="detailsColumn"
+                         text="Побажання"
+                         prefWidth="190"/>
+
+            <TableColumn fx:id="amountColumn"
+                         text="Сума (грн)"
+                         prefWidth="110"/>
+
         </columns>
+
     </TableView>
 
-    <Button text="Back" onAction="#onBack" styleClass="secondary-button"/>
+    <Button text="Назад"
+            onAction="#onBack"
+            styleClass="secondary-button"/>
+
 </VBox>

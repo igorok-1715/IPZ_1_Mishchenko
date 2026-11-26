@@ -1,58 +1,237 @@
+
 package com.example.beauty;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Locale;
+import java.time.LocalDateTime;
 
-/**
- * Зберігає зареєстрованих користувачів і історію їхніх оплат,
- * перевіряє коректність логіна/пароля.
- */
 public class UserStore {
 
-    private static final Map<String, String> users = new HashMap<>();
-    private static final Map<String, List<Payment>> paymentHistory = new HashMap<>();
-    private static String currentUser;
+    // Зареєстровані користувачі
+    private static final Map<String, User> users =
+            new HashMap<>();
 
-    public static void register(String username, String password) {
-        if (username == null || username.isBlank()) {
-            throw new IllegalArgumentException("Введіть ім'я користувача.");
+    // Історія візитів користувачів
+    private static final Map<String, List<Payment>> paymentHistory =
+            new HashMap<>();
+
+    private static User currentUser;
+
+    // Реєстрація користувача
+    public static void register(String username,
+                                String phone,
+                                String email,
+                                String password) {
+
+        username = username.trim();
+
+        phone = phone.replaceAll("[\\s()-]", "");
+
+        email = email.trim().toLowerCase(Locale.ROOT);
+
+        // Перевірка імені
+        if (username.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Введіть ім'я користувача!"
+            );
         }
-        if (password == null || password.length() < 4) {
-            throw new IllegalArgumentException("Пароль має містити щонайменше 4 символи.");
+
+        // Перевірка номера телефону
+        if (!phone.matches("\\+?[0-9]{10,15}")) {
+
+            throw new IllegalArgumentException(
+                    "Введіть коректний номер телефону!"
+            );
         }
-        if (users.containsKey(username)) {
-            throw new IllegalArgumentException("Користувач із таким іменем вже існує.");
+
+        // Нормалізація українського номера
+        if (phone.matches("0[0-9]{9}")) {
+            phone = "+38" + phone;
+        } else if (phone.matches("380[0-9]{9}")) {
+            phone = "+" + phone;
         }
-        users.put(username, password);
-        paymentHistory.put(username, new ArrayList<>());
+
+        // Перевірка електронної пошти
+        if (!email.matches(
+                "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+
+            throw new IllegalArgumentException(
+                    "Введіть коректну електронну пошту!"
+            );
+        }
+
+        // Перевірка пароля
+        if (password == null || password.length() < 4
+                || password.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Пароль має містити щонайменше 4 символи!"
+            );
+        }
+
+        // Перевірка унікальності телефону та email
+        for (User user : users.values()) {
+
+            if (user.getPhone().equals(phone)) {
+
+                throw new IllegalArgumentException(
+                        "Цей номер телефону вже зареєстрований!"
+                );
+            }
+
+            if (user.getEmail().equals(email)) {
+
+                throw new IllegalArgumentException(
+                        "Ця електронна пошта вже зареєстрована!"
+                );
+            }
+        }
+
+        // Створення нового користувача
+        User user = new User(
+                username,
+                phone,
+                email,
+                password
+        );
+
+        users.put(email, user);
+
+        paymentHistory.put(email, new ArrayList<>());
     }
 
-    public static void login(String username, String password) {
-        if (username == null || username.isBlank() || password == null || password.isBlank()) {
-            throw new IllegalArgumentException("Заповніть усі поля.");
+    // Авторизація за телефоном або email
+    public static void login(String login, String password) {
+
+        if (login == null || login.isBlank()
+                || password == null || password.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Заповніть усі поля!"
+            );
         }
-        String stored = users.get(username);
-        if (stored == null || !stored.equals(password)) {
-            throw new IllegalArgumentException("Невірне ім'я користувача або пароль.");
+
+        login = login.trim();
+
+        String phone = login.replaceAll("[\\s()-]", "");
+
+        if (phone.matches("0[0-9]{9}")) {
+            phone = "+38" + phone;
+        } else if (phone.matches("380[0-9]{9}")) {
+            phone = "+" + phone;
         }
-        currentUser = username;
+
+        for (User user : users.values()) {
+
+            if (user.getEmail().equalsIgnoreCase(login)
+                    || user.getPhone().equals(phone)) {
+
+                if (user.getPassword().equals(password)) {
+
+                    currentUser = user;
+                    return;
+                }
+            }
+        }
+
+        throw new IllegalArgumentException(
+                "Невірний телефон, email або пароль!"
+        );
     }
 
+    // Вихід із системи
     public static void logout() {
         currentUser = null;
     }
 
+    // Отримання імені поточного користувача
     public static String getCurrentUser() {
-        return currentUser;
+
+        if (currentUser == null) {
+            return null;
+        }
+
+        return currentUser.getUsername();
     }
 
+    // Додавання запису на процедуру
     public static void addPayment(Payment payment) {
-        paymentHistory.computeIfAbsent(currentUser, k -> new ArrayList<>()).add(payment);
+
+        if (currentUser == null) {
+
+            throw new IllegalStateException(
+                    "Спочатку авторизуйтеся!"
+            );
+        }
+
+        if (payment == null
+                || payment.getMaster() == null
+                || payment.getDateTime() == null) {
+
+            throw new IllegalArgumentException(
+                    "Некоректні дані запису!"
+            );
+        }
+
+        if (!payment.getDateTime().isAfter(LocalDateTime.now())) {
+
+            throw new IllegalArgumentException(
+                    "Не можна записатися на минулий час!"
+            );
+        }
+
+        if (isMasterBusy(
+                payment.getMaster(),
+                payment.getDateTime())) {
+
+            throw new IllegalArgumentException(
+                    "Майстер уже зайнятий на цей час!"
+            );
+        }
+
+        paymentHistory.computeIfAbsent(
+                currentUser.getEmail(),
+                k -> new ArrayList<>()
+        ).add(payment);
     }
 
+    // Отримання історії поточного користувача
     public static List<Payment> getHistory() {
-        return paymentHistory.getOrDefault(currentUser, new ArrayList<>());
+
+        if (currentUser == null) {
+            return new ArrayList<>();
+        }
+
+        return new ArrayList<>(
+                paymentHistory.getOrDefault(
+                        currentUser.getEmail(),
+                        new ArrayList<>()
+                )
+        );
+    }
+
+    // Перевірка зайнятості майстра
+    public static boolean isMasterBusy(
+            String master, LocalDateTime dateTime) {
+
+        for (List<Payment> history : paymentHistory.values()) {
+
+            for (Payment payment : history) {
+
+                if (Objects.equals(payment.getMaster(), master)
+                        && Objects.equals(
+                        payment.getDateTime(), dateTime)) {
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

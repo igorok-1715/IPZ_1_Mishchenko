@@ -4,23 +4,49 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
+<VBox xmlns="http://javafx.com/javafx/23"
+      xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.example.beauty.RegisterController"
-      alignment="CENTER" spacing="10" styleClass="root-pane">
+      alignment="CENTER"
+      spacing="12"
+      prefWidth="460"
+      styleClass="root-pane">
+
     <padding>
         <Insets top="25" right="30" bottom="25" left="30"/>
     </padding>
 
-    <Label text="Register" styleClass="title-label"/>
+    <Label text="Реєстрація"
+           styleClass="title-label"/>
 
-    <TextField fx:id="usernameField" promptText="Username"/>
-    <PasswordField fx:id="passwordField" promptText="Password"/>
-    <PasswordField fx:id="confirmPasswordField" promptText="Confirm Password"/>
+    <TextField fx:id="usernameField"
+               promptText="Ім'я користувача"/>
 
-    <Label fx:id="errorLabel" wrapText="true"/>
+    <TextField fx:id="phoneField"
+               promptText="Номер телефону"/>
+
+    <TextField fx:id="emailField"
+               promptText="Електронна пошта"/>
+
+    <PasswordField fx:id="passwordField"
+                   promptText="Пароль"/>
+
+    <PasswordField fx:id="confirmPasswordField"
+                   promptText="Підтвердження пароля"/>
+
+    <Label fx:id="errorLabel"
+           wrapText="true"/>
 
     <HBox spacing="10" alignment="CENTER">
-        <Button text="Back" onAction="#onBackToLogin" styleClass="secondary-button"/>
-        <Button text="Register" onAction="#onRegister" styleClass="primary-button"/>
+
+        <Button text="Назад"
+                onAction="#onBackToLogin"
+                styleClass="secondary-button"/>
+
+        <Button text="Зареєструватися"
+                onAction="#onRegister"
+                styleClass="primary-button"/>
+
     </HBox>
+
 </VBox>

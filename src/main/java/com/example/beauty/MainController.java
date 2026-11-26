@@ -13,6 +13,9 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 public class MainController {
 
@@ -24,6 +27,12 @@ public class MainController {
 
     @FXML
     private ComboBox<String> masterComboBox;
+
+    @FXML
+    private DatePicker visitDatePicker;
+
+    @FXML
+    private ComboBox<String> visitTimeComboBox;
 
     @FXML
     private TextField detailsField;
@@ -38,7 +47,8 @@ public class MainController {
     private Button minimizeButton;
 
     // Ціни на послуги різних майстрів
-    private final Map<String, Double> masterPrices = new HashMap<>();
+    private final Map<String, Double> masterPrices =
+            new HashMap<>();
 
     @FXML
     public void initialize() {
@@ -48,114 +58,194 @@ public class MainController {
 
         if (welcomeLabel != null) {
             welcomeLabel.setText(
-                    user != null ? "Вітаємо, " + user + "!" : "Головне вікно"
+                    user != null
+                            ? "Вітаємо, " + user + "!"
+                            : "Головне вікно"
             );
         }
 
         // Заповнення списку послуг
-        if (accountTypeComboBox != null) {
+        accountTypeComboBox.getItems().addAll(
+                "Манікюр",
+                "Стрижка",
+                "Масаж обличчя",
+                "Фарбування волосся",
+                "SPA-процедура"
+        );
 
-            accountTypeComboBox.getItems().addAll(
-                    "Манікюр",
-                    "Стрижка",
-                    "Масаж обличчя",
-                    "Фарбування волосся",
-                    "SPA-процедура"
-            );
+        // Заборона вибору минулих дат
+        visitDatePicker.setDayCellFactory(
+                picker -> new DateCell() {
 
-            // Оновлення майстрів залежно від послуги
-            accountTypeComboBox.valueProperty().addListener(
-                    (observable, oldValue, newValue) -> {
+                    @Override
+                    public void updateItem(
+                            LocalDate date, boolean empty) {
 
-                        masterComboBox.setValue(null);
-                        masterComboBox.getItems().clear();
-                        masterPrices.clear();
-                        amountField.clear();
+                        super.updateItem(date, empty);
 
-                        if (newValue == null) {
-                            return;
-                        }
-
-                        switch (newValue) {
-
-                            case "Манікюр":
-                                masterComboBox.getItems().addAll(
-                                        "Олена", "Ірина"
-                                );
-                                masterPrices.put("Олена", 500.0);
-                                masterPrices.put("Ірина", 600.0);
-                                break;
-
-                            case "Стрижка":
-                                masterComboBox.getItems().addAll(
-                                        "Андрій", "Максим"
-                                );
-                                masterPrices.put("Андрій", 700.0);
-                                masterPrices.put("Максим", 900.0);
-                                break;
-
-                            case "Масаж обличчя":
-                                masterComboBox.getItems().add("Катерина");
-                                masterPrices.put("Катерина", 800.0);
-                                break;
-
-                            case "Фарбування волосся":
-                                masterComboBox.getItems().addAll(
-                                        "Світлана", "Андрій"
-                                );
-                                masterPrices.put("Світлана", 1200.0);
-                                masterPrices.put("Андрій", 1400.0);
-                                break;
-
-                            case "SPA-процедура":
-                                masterComboBox.getItems().addAll(
-                                        "Олена", "Катерина"
-                                );
-                                masterPrices.put("Олена", 1500.0);
-                                masterPrices.put("Катерина", 1800.0);
-                                break;
-                        }
+                        setDisable(
+                                empty || date == null ||
+                                        date.isBefore(LocalDate.now())
+                        );
                     }
-            );
-        }
+                }
+        );
 
-        // Автоматичне визначення вартості послуги
-        if (masterComboBox != null) {
+        // Заборона ручного редагування ціни
+        amountField.setEditable(false);
 
-            masterComboBox.valueProperty().addListener(
-                    (observable, oldValue, newValue) -> {
+        // Оновлення списку майстрів
+        accountTypeComboBox.valueProperty().addListener(
+                (observable, oldValue, newValue) -> {
 
-                        if (newValue != null &&
-                                masterPrices.containsKey(newValue)) {
+                    masterComboBox.setValue(null);
+                    masterComboBox.getItems().clear();
+                    masterPrices.clear();
+                    amountField.clear();
 
-                            Double price = masterPrices.get(newValue);
+                    if (newValue == null) {
+                        return;
+                    }
 
-                            amountField.setText(
-                                    String.valueOf(price)
+                    switch (newValue) {
+
+                        case "Манікюр":
+                            masterComboBox.getItems().addAll(
+                                    "Олена", "Ірина"
                             );
+                            masterPrices.put("Олена", 500.0);
+                            masterPrices.put("Ірина", 600.0);
+                            break;
 
-                        } else {
-                            amountField.clear();
-                        }
+                        case "Стрижка":
+                            masterComboBox.getItems().addAll(
+                                    "Андрій", "Максим"
+                            );
+                            masterPrices.put("Андрій", 700.0);
+                            masterPrices.put("Максим", 900.0);
+                            break;
+
+                        case "Масаж обличчя":
+                            masterComboBox.getItems().add(
+                                    "Катерина"
+                            );
+                            masterPrices.put("Катерина", 800.0);
+                            break;
+
+                        case "Фарбування волосся":
+                            masterComboBox.getItems().addAll(
+                                    "Світлана", "Андрій"
+                            );
+                            masterPrices.put("Світлана", 1200.0);
+                            masterPrices.put("Андрій", 1400.0);
+                            break;
+
+                        case "SPA-процедура":
+                            masterComboBox.getItems().addAll(
+                                    "Олена", "Катерина"
+                            );
+                            masterPrices.put("Олена", 1500.0);
+                            masterPrices.put("Катерина", 1800.0);
+                            break;
                     }
-            );
+                }
+        );
+
+        // Автоматичне визначення вартості
+        masterComboBox.valueProperty().addListener(
+                (observable, oldValue, newValue) -> {
+
+                    if (newValue != null &&
+                            masterPrices.containsKey(newValue)) {
+
+                        amountField.setText(
+                                String.valueOf(
+                                        masterPrices.get(newValue)
+                                )
+                        );
+
+                    } else {
+                        amountField.clear();
+                    }
+
+                    // Оновлення вільного часу майстра
+                    updateAvailableTimes();
+                }
+        );
+
+        // Оновлення часу після зміни дати
+        visitDatePicker.valueProperty().addListener(
+                (observable, oldValue, newValue) -> {
+                    updateAvailableTimes();
+                }
+        );
+
+        // Data Binding кнопки запису
+        payButton.disableProperty().bind(
+                accountTypeComboBox.valueProperty().isNull()
+                        .or(masterComboBox.valueProperty().isNull())
+                        .or(visitDatePicker.valueProperty().isNull())
+                        .or(visitTimeComboBox.valueProperty().isNull())
+                        .or(amountField.textProperty().isEmpty())
+        );
+
+        updateAvailableTimes();
+    }
+
+    // Формування списку вільного часу
+    private void updateAvailableTimes() {
+
+        visitTimeComboBox.setValue(null);
+        visitTimeComboBox.getItems().clear();
+
+        String master = masterComboBox.getValue();
+        LocalDate date = visitDatePicker.getValue();
+
+        // Спочатку потрібно вибрати майстра та дату
+        if (master == null || date == null) {
+            visitTimeComboBox.setDisable(true);
+            return;
         }
 
-        // Data Binding кнопки оплати
-        if (payButton != null &&
-                accountTypeComboBox != null &&
-                masterComboBox != null &&
-                amountField != null) {
+        // Перевірка часу з 09:00 до 18:00
+        for (int hour = 9; hour <= 18; hour++) {
 
-            payButton.disableProperty().bind(
-                    accountTypeComboBox.valueProperty().isNull()
-                            .or(masterComboBox.valueProperty().isNull())
-                            .or(amountField.textProperty().isEmpty())
+            LocalTime time = LocalTime.of(hour, 0);
+
+            LocalDateTime visitDateTime =
+                    LocalDateTime.of(date, time);
+
+            // Додаємо лише майбутній та вільний час
+            if (visitDateTime.isAfter(LocalDateTime.now())
+                    && !UserStore.isMasterBusy(
+                    master, visitDateTime)) {
+
+                visitTimeComboBox.getItems().add(
+                        time.toString()
+                );
+            }
+        }
+
+        // Якщо вільного часу немає
+        if (visitTimeComboBox.getItems().isEmpty()) {
+
+            visitTimeComboBox.setPromptText(
+                    "Вільного часу немає"
             );
+
+            visitTimeComboBox.setDisable(true);
+
+        } else {
+
+            visitTimeComboBox.setPromptText(
+                    "Оберіть час візиту"
+            );
+
+            visitTimeComboBox.setDisable(false);
         }
     }
 
-    // Оплата послуги
+    // Запис клієнта на процедуру
     @FXML
     private void onPay(ActionEvent event) {
 
@@ -170,75 +260,118 @@ public class MainController {
             String additionalDetails =
                     detailsField.getText().trim();
 
+            LocalDate selectedDate =
+                    visitDatePicker.getValue();
+
+            String selectedTime =
+                    visitTimeComboBox.getValue();
+
+            // Перевірка заповнення полів
+            if (selectedService == null ||
+                    selectedMaster == null ||
+                    selectedDate == null ||
+                    selectedTime == null) {
+
+                showError("Заповніть усі необхідні поля!");
+                return;
+            }
+
             double amount = Double.parseDouble(
                     amountField.getText().trim()
             );
 
-            // Перевірка правильності суми
+            // Перевірка вартості
             if (!Double.isFinite(amount) || amount <= 0) {
-                throw new IllegalArgumentException(
-                        "Сума повинна бути більшою за 0!"
+
+                showError("Некоректна вартість послуги!");
+                return;
+            }
+
+            LocalTime time =
+                    LocalTime.parse(selectedTime);
+
+            LocalDateTime visitDateTime =
+                    LocalDateTime.of(selectedDate, time);
+
+            // Перевірка дати та часу
+            if (!visitDateTime.isAfter(LocalDateTime.now())) {
+
+                showError(
+                        "Не можна записатися на минулу дату або час!"
                 );
+
+                updateAvailableTimes();
+                return;
             }
 
-            // Формування опису платежу
-            String fullDetails =
-                    "Майстер: " + selectedMaster;
+            // Перевірка зайнятості майстра
+            if (UserStore.isMasterBusy(
+                    selectedMaster, visitDateTime)) {
 
-            if (!additionalDetails.isEmpty()) {
-                fullDetails += " | " + additionalDetails;
+                showError(
+                        "Майстер зайнятий! Оберіть інший час."
+                );
+
+                updateAvailableTimes();
+                return;
             }
 
-            // Створення платежу
+            // Створення запису на процедуру
             Payment payment = new Payment(
                     selectedService,
-                    fullDetails,
-                    amount
+                    selectedMaster,
+                    additionalDetails,
+                    amount,
+                    visitDateTime
             );
 
-            // Збереження платежу в історії
+            // Збереження запису в історії
             UserStore.addPayment(payment);
 
-            // Повідомлення про успішну оплату
+            // Повідомлення про успішний запис
             Alert alert = new Alert(
                     Alert.AlertType.INFORMATION
             );
 
-            alert.setTitle("Payment");
-            alert.setHeaderText("Оплата успішна!");
+            alert.setTitle("Запис на процедуру");
+            alert.setHeaderText("Ви успішно записалися!");
 
             alert.setContentText(
                     "Послуга: " + selectedService +
                             "\nМайстер: " + selectedMaster +
-                            "\nСума: " + amount + " грн"
+                            "\nДата і час: " +
+                            payment.getFormattedDateTime() +
+                            "\nВартість: " + amount + " грн"
             );
 
             alert.showAndWait();
 
-            // Очищення полів
+            // Очищення полів після запису
             accountTypeComboBox.setValue(null);
             masterComboBox.setValue(null);
             masterComboBox.getItems().clear();
+
+            visitDatePicker.setValue(null);
+            visitTimeComboBox.setValue(null);
+
             detailsField.clear();
             amountField.clear();
 
+            updateAvailableTimes();
+
         } catch (NumberFormatException e) {
 
-            showError("Введіть правильну суму!");
-
-        } catch (IllegalArgumentException e) {
-
-            showError(e.getMessage());
+            showError("Некоректна сума!");
 
         } catch (Exception e) {
 
             showError(
-                    "Помилка при оплаті: " + e.getMessage()
+                    "Помилка при записі: " + e.getMessage()
             );
         }
     }
 
-    // Відображення історії платежів
+    // Відображення історії візитів
     @FXML
     private void onShowHistory(ActionEvent event) {
 
@@ -247,7 +380,7 @@ public class MainController {
             switchScene(
                     event,
                     "history-view.fxml",
-                    "Payment History"
+                    "Історія візитів"
             );
 
         } catch (IOException e) {
@@ -308,6 +441,7 @@ public class MainController {
 
         stage.setScene(scene);
         stage.setTitle(title);
+        stage.sizeToScene();
         stage.show();
     }
 

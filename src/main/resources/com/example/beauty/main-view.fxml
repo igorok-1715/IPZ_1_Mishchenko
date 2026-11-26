@@ -4,28 +4,58 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
+<VBox xmlns="http://javafx.com/javafx/23"
+      xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.example.beauty.MainController"
-      alignment="CENTER" spacing="12" styleClass="root-pane">
+      alignment="CENTER"
+      spacing="12"
+      styleClass="root-pane">
+
     <padding>
         <Insets top="25" right="30" bottom="25" left="30"/>
     </padding>
 
     <Label fx:id="welcomeLabel" styleClass="title-label"/>
 
-    <!-- Вибір послуги -->
-    <ComboBox fx:id="accountTypeComboBox" promptText="Оберіть послугу" maxWidth="Infinity"/>
+    <ComboBox fx:id="accountTypeComboBox"
+              promptText="Оберіть послугу"
+              maxWidth="Infinity"/>
 
-    <!-- Вибір майстра (додано) -->
-    <ComboBox fx:id="masterComboBox" promptText="Оберіть майстра" maxWidth="Infinity"/>
+    <ComboBox fx:id="masterComboBox"
+              promptText="Оберіть майстра"
+              maxWidth="Infinity"/>
 
-    <TextField fx:id="detailsField" promptText="Час запису"/>
-    <TextField fx:id="amountField" promptText="Сума (грн)" editable="false"/>
+    <DatePicker fx:id="visitDatePicker"
+                promptText="Оберіть дату візиту"
+                editable="false"
+                maxWidth="Infinity"/>
 
-    <Button fx:id="payButton" text="Pay" onAction="#onPay" styleClass="primary-button"/>
+    <ComboBox fx:id="visitTimeComboBox"
+              promptText="Оберіть час візиту"
+              maxWidth="Infinity"/>
+
+    <TextField fx:id="detailsField"
+               promptText="Додаткові побажання"/>
+
+    <TextField fx:id="amountField"
+               promptText="Сума (грн)"
+               editable="false"/>
+
+    <Button fx:id="payButton"
+            text="Записатися"
+            onAction="#onPay"
+            styleClass="primary-button"/>
 
     <HBox spacing="10" alignment="CENTER">
-        <Button text="Payment History" onAction="#onShowHistory" styleClass="secondary-button"/>
-        <Button text="Log Out" onAction="#onLogout" styleClass="secondary-button"/>
+
+        <Button text="Історія візитів"
+                onAction="#onShowHistory"
+                styleClass="secondary-button"/>
+
+        <Button text="Вийти"
+                onAction="#onLogout"
+                styleClass="secondary-button"/>
+
     </HBox>
+
 </VBox>

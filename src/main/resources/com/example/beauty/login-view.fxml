@@ -4,22 +4,41 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
+<VBox xmlns="http://javafx.com/javafx/23"
+      xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.example.beauty.LoginController"
-      alignment="CENTER" spacing="12" styleClass="root-pane">
+      alignment="CENTER"
+      spacing="12"
+      prefWidth="460"
+      styleClass="root-pane">
+
     <padding>
         <Insets top="30" right="30" bottom="30" left="30"/>
     </padding>
 
-    <Label text="Sign In" styleClass="title-label"/>
+    <Label text="Авторизація"
+           styleClass="title-label"/>
 
-    <TextField fx:id="usernameField" promptText="Username"/>
-    <PasswordField fx:id="passwordField" promptText="Password"/>
+    <TextField fx:id="usernameField"
+               promptText="Телефон або email"/>
 
-    <Label fx:id="errorLabel" styleClass="error-label" wrapText="true"/>
+    <PasswordField fx:id="passwordField"
+                   promptText="Пароль"/>
+
+    <Label fx:id="errorLabel"
+           styleClass="error-label"
+           wrapText="true"/>
 
     <HBox spacing="10" alignment="CENTER">
-        <Button text="Register" onAction="#onGoToRegister" styleClass="secondary-button"/>
-        <Button text="Sign In" onAction="#onSignIn" styleClass="primary-button"/>
+
+        <Button text="Реєстрація"
+                onAction="#onGoToRegister"
+                styleClass="secondary-button"/>
+
+        <Button text="Увійти"
+                onAction="#onSignIn"
+                styleClass="primary-button"/>
+
     </HBox>
+
 </VBox>

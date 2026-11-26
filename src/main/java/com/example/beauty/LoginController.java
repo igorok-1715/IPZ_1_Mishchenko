@@ -1,3 +1,4 @@
+
 package com.example.beauty;
 
 import javafx.event.ActionEvent;
@@ -17,41 +18,97 @@ public class LoginController {
 
     @FXML
     private TextField usernameField;
+
     @FXML
     private PasswordField passwordField;
+
     @FXML
     private Label errorLabel;
 
+    // Авторизація користувача
     @FXML
     private void onSignIn(ActionEvent event) {
+
         try {
-            UserStore.login(usernameField.getText(), passwordField.getText());
+
+            UserStore.login(
+                    usernameField.getText(),
+                    passwordField.getText()
+            );
+
             errorLabel.setText("");
-            switchScene(event, "main-view.fxml", "Оплата послуг салону краси");
+
+            switchScene(
+                    event,
+                    "main-view.fxml",
+                    "Запис до салону краси"
+            );
+
         } catch (IllegalArgumentException e) {
+
             errorLabel.setText(e.getMessage());
+
         } catch (IOException e) {
-            errorLabel.setText("Не вдалося відкрити головне вікно: " + e.getMessage());
+
+            // Виведення детальної помилки в консоль
+            e.printStackTrace();
+
+            UserStore.logout();
+
+            errorLabel.setText(
+                    "Не вдалося відкрити головне вікно!"
+            );
         }
     }
 
+    // Перехід до вікна реєстрації
     @FXML
     private void onGoToRegister(ActionEvent event) {
+
         try {
-            switchScene(event, "register-view.fxml", "Register");
+
+            switchScene(
+                    event,
+                    "register-view.fxml",
+                    "Реєстрація"
+            );
+
         } catch (IOException e) {
-            errorLabel.setText("Не вдалося відкрити вікно реєстрації: " + e.getMessage());
+
+            e.printStackTrace();
+
+            errorLabel.setText(
+                    "Не вдалося відкрити вікно реєстрації!"
+            );
         }
     }
 
-    private void switchScene(ActionEvent event, String fxml, String title) throws IOException {
-        FXMLLoader loader = new FXMLLoader(App.class.getResource(fxml));
+    // Перехід між вікнами
+    private void switchScene(
+            ActionEvent event,
+            String fxml,
+            String title
+    ) throws IOException {
+
+        FXMLLoader loader = new FXMLLoader(
+                App.class.getResource(fxml)
+        );
+
         Parent root = loader.load();
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+
+        Stage stage = (Stage) ((Node) event.getSource())
+                .getScene().getWindow();
+
         Scene scene = new Scene(root);
-        scene.getStylesheets().add(App.class.getResource("styles.css").toExternalForm());
+
+        scene.getStylesheets().add(
+                App.class.getResource("styles.css")
+                        .toExternalForm()
+        );
+
         stage.setScene(scene);
         stage.setTitle(title);
+        stage.sizeToScene();
         stage.show();
     }
 }
