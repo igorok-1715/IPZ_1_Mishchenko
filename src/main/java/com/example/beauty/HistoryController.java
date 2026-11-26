@@ -65,13 +65,6 @@ public class HistoryController {
                 new PropertyValueFactory<>("formattedDateTime")
         );
 
-        // Завантаження історії поточного користувача
-        historyTable.setItems(
-                FXCollections.observableArrayList(
-                        UserStore.getHistory()
-                )
-        );
-
         // Повідомлення, якщо історія порожня
         historyTable.setPlaceholder(
                 new Label("Історія візитів відсутня")
@@ -80,6 +73,27 @@ public class HistoryController {
         historyTable.setColumnResizePolicy(
                 TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS
         );
+
+        // Завантаження історії через HTTP-сервер
+        try {
+
+            historyTable.setItems(
+                    FXCollections.observableArrayList(
+                            ApiClient.getHistory()
+                    )
+            );
+
+        } catch (IllegalArgumentException | IllegalStateException e) {
+
+            historyTable.getItems().clear();
+
+            historyTable.setPlaceholder(
+                    new Label(
+                            "Не вдалося завантажити історію: "
+                                    + e.getMessage()
+                    )
+            );
+        }
     }
 
     // Повернення до головного вікна
@@ -114,7 +128,9 @@ public class HistoryController {
             Alert alert = new Alert(Alert.AlertType.ERROR);
 
             alert.setTitle("Помилка");
-            alert.setHeaderText("Не вдалося відкрити головне вікно");
+            alert.setHeaderText(
+                    "Не вдалося відкрити головне вікно"
+            );
             alert.setContentText(e.getMessage());
 
             alert.showAndWait();

@@ -34,7 +34,7 @@ public class RegisterController {
     @FXML
     private Label errorLabel;
 
-    // Реєстрація нового користувача
+    // Реєстрація нового користувача через HTTP-сервер
     @FXML
     private void onRegister(ActionEvent event) {
 
@@ -64,8 +64,8 @@ public class RegisterController {
                 );
             }
 
-            // Реєстрація користувача
-            UserStore.register(
+            // Реєстрація користувача через сервер
+            ApiClient.register(
                     username,
                     phone,
                     email,
@@ -84,7 +84,7 @@ public class RegisterController {
             passwordField.clear();
             confirmPasswordField.clear();
 
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
 
             errorLabel.setStyle("-fx-text-fill: #c0392b;");
             errorLabel.setText(e.getMessage());

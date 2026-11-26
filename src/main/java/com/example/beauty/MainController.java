@@ -53,8 +53,8 @@ public class MainController {
     @FXML
     public void initialize() {
 
-        // Виведення імені користувача
-        String user = UserStore.getCurrentUser();
+        // Отримання імені авторизованого користувача
+        String user = ApiClient.getCurrentUser();
 
         if (welcomeLabel != null) {
             welcomeLabel.setText(
@@ -192,60 +192,80 @@ public class MainController {
         updateAvailableTimes();
     }
 
-    // Формування списку вільного часу
+    // Формування списку вільного часу через HTTP-сервер
     private void updateAvailableTimes() {
 
         visitTimeComboBox.setValue(null);
         visitTimeComboBox.getItems().clear();
+        visitTimeComboBox.setDisable(true);
 
         String master = masterComboBox.getValue();
         LocalDate date = visitDatePicker.getValue();
 
         // Спочатку потрібно вибрати майстра та дату
         if (master == null || date == null) {
-            visitTimeComboBox.setDisable(true);
+
+            visitTimeComboBox.setPromptText(
+                    "Оберіть майстра та дату"
+            );
+
             return;
         }
 
-        // Перевірка часу з 09:00 до 18:00
-        for (int hour = 9; hour <= 18; hour++) {
+        try {
 
-            LocalTime time = LocalTime.of(hour, 0);
+            // Перевірка часу з 09:00 до 18:00
+            for (int hour = 9; hour <= 18; hour++) {
 
-            LocalDateTime visitDateTime =
-                    LocalDateTime.of(date, time);
+                LocalTime time = LocalTime.of(hour, 0);
 
-            // Додаємо лише майбутній та вільний час
-            if (visitDateTime.isAfter(LocalDateTime.now())
-                    && !UserStore.isMasterBusy(
-                    master, visitDateTime)) {
+                LocalDateTime visitDateTime =
+                        LocalDateTime.of(date, time);
 
-                visitTimeComboBox.getItems().add(
-                        time.toString()
-                );
+                // Перевірка доступності через сервер
+                if (visitDateTime.isAfter(LocalDateTime.now())
+                        && !ApiClient.isMasterBusy(
+                        master, visitDateTime)) {
+
+                    visitTimeComboBox.getItems().add(
+                            time.toString()
+                    );
+                }
             }
-        }
 
-        // Якщо вільного часу немає
-        if (visitTimeComboBox.getItems().isEmpty()) {
+            // Якщо вільного часу немає
+            if (visitTimeComboBox.getItems().isEmpty()) {
 
-            visitTimeComboBox.setPromptText(
-                    "Вільного часу немає"
-            );
+                visitTimeComboBox.setPromptText(
+                        "Вільного часу немає"
+                );
 
+            } else {
+
+                visitTimeComboBox.setPromptText(
+                        "Оберіть час візиту"
+                );
+
+                visitTimeComboBox.setDisable(false);
+            }
+
+        } catch (IllegalArgumentException | IllegalStateException e) {
+
+            visitTimeComboBox.getItems().clear();
             visitTimeComboBox.setDisable(true);
 
-        } else {
-
             visitTimeComboBox.setPromptText(
-                    "Оберіть час візиту"
+                    "Не вдалося завантажити час"
             );
 
-            visitTimeComboBox.setDisable(false);
+            showError(
+                    "Помилка отримання вільного часу: "
+                            + e.getMessage()
+            );
         }
     }
 
-    // Запис клієнта на процедуру
+    // Запис клієнта на процедуру через HTTP-сервер
     @FXML
     private void onPay(ActionEvent event) {
 
@@ -304,8 +324,8 @@ public class MainController {
                 return;
             }
 
-            // Перевірка зайнятості майстра
-            if (UserStore.isMasterBusy(
+            // Перевірка зайнятості майстра через сервер
+            if (ApiClient.isMasterBusy(
                     selectedMaster, visitDateTime)) {
 
                 showError(
@@ -316,7 +336,7 @@ public class MainController {
                 return;
             }
 
-            // Створення запису на процедуру
+            // Створення об'єкта бронювання
             Payment payment = new Payment(
                     selectedService,
                     selectedMaster,
@@ -325,8 +345,8 @@ public class MainController {
                     visitDateTime
             );
 
-            // Збереження запису в історії
-            UserStore.addPayment(payment);
+            // Надсилання бронювання на HTTP-сервер
+            ApiClient.addPayment(payment);
 
             // Повідомлення про успішний запис
             Alert alert = new Alert(
@@ -341,7 +361,7 @@ public class MainController {
                             "\nМайстер: " + selectedMaster +
                             "\nДата і час: " +
                             payment.getFormattedDateTime() +
-                            "\nВартість: " + amount + " грн"
+                            "\nВартість за прайсом: " + amount + " грн"
             );
 
             alert.showAndWait();
@@ -363,7 +383,7 @@ public class MainController {
 
             showError("Некоректна сума!");
 
-        } catch (Exception e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
 
             showError(
                     "Помилка при записі: " + e.getMessage()
@@ -392,13 +412,24 @@ public class MainController {
         }
     }
 
-    // Вихід з облікового запису
+    // Вихід з облікового запису через сервер
     @FXML
     private void onLogout(ActionEvent event) {
 
         try {
 
-            UserStore.logout();
+            ApiClient.logout();
+
+        } catch (IllegalArgumentException | IllegalStateException e) {
+
+            showError(
+                    "Не вдалося завершити серверну сесію: "
+                            + e.getMessage()
+            );
+        }
+
+        // Повернення до вікна авторизації
+        try {
 
             switchScene(
                     event,

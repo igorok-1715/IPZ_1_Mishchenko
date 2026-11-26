@@ -1,4 +1,3 @@
-
 package com.example.beauty;
 
 import javafx.event.ActionEvent;
@@ -25,13 +24,13 @@ public class LoginController {
     @FXML
     private Label errorLabel;
 
-    // Авторизація користувача
+    // Авторизація користувача через HTTP-сервер
     @FXML
     private void onSignIn(ActionEvent event) {
 
         try {
 
-            UserStore.login(
+            ApiClient.login(
                     usernameField.getText(),
                     passwordField.getText()
             );
@@ -44,16 +43,19 @@ public class LoginController {
                     "Запис до салону краси"
             );
 
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
 
             errorLabel.setText(e.getMessage());
 
         } catch (IOException e) {
 
-            // Виведення детальної помилки в консоль
             e.printStackTrace();
 
-            UserStore.logout();
+            try {
+                ApiClient.logout();
+            } catch (RuntimeException ex) {
+                ex.printStackTrace();
+            }
 
             errorLabel.setText(
                     "Не вдалося відкрити головне вікно!"

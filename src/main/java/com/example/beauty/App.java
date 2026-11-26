@@ -1,3 +1,4 @@
+
 package com.example.beauty;
 
 import javafx.application.Application;
@@ -14,7 +15,6 @@ public class App extends Application {
     public void start(Stage stage) {
 
         try {
-            Database.initialize();
 
             FXMLLoader loader = new FXMLLoader(
                     App.class.getResource("login-view.fxml")
