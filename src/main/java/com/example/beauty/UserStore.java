@@ -357,9 +357,10 @@ public class UserStore {
         }
 
         String sql = """
-                SELECT id FROM appointments
-                WHERE master = ? AND visit_datetime = ?
-                """;
+            SELECT id FROM appointments
+            WHERE TRIM(master) = TRIM(?)
+            AND datetime(visit_datetime) = datetime(?)
+            """;
 
         try (Connection connection = Database.connect();
              PreparedStatement statement =
@@ -373,9 +374,6 @@ public class UserStore {
             }
 
         } catch (SQLException e) {
-
-            e.printStackTrace();
-
             throw new IllegalStateException(
                     "Помилка перевірки зайнятості майстра!", e
             );
