@@ -332,6 +332,32 @@ public class ApiClient {
         );
     }
 
+    // Виведення історії візитів
+    private static void printHistory() {
+
+        List<Payment> history = getHistory();
+
+        System.out.println("\nІсторія візитів:");
+
+        if (history.isEmpty()) {
+
+            System.out.println("Історія візитів порожня.");
+
+        } else {
+
+            for (Payment payment : history) {
+
+                System.out.println(
+                        payment.getType() + " | "
+                                + payment.getMaster() + " | "
+                                + payment.getFormattedDateTime() + " | "
+                                + payment.getDetails() + " | "
+                                + payment.getAmount() + " грн"
+                );
+            }
+        }
+    }
+
     // Тестування клієнт-серверної взаємодії
     public static void main(String[] args) {
 
@@ -358,66 +384,133 @@ public class ApiClient {
             System.out.println("Авторизація успішна!");
             System.out.println("Вітаємо, " + getCurrentUser());
 
-            // Отримання історії візитів
-            System.out.println("\nІсторія візитів:");
+            // Історія до створення бронювання
+            printHistory();
 
-            List<Payment> history = getHistory();
+            // Введення даних нового бронювання
+            System.out.println("\nСтворення нового запису:");
 
-            if (history.isEmpty()) {
-
-                System.out.println("Історія візитів порожня.");
-
-            } else {
-
-                for (Payment payment : history) {
-
-                    System.out.println(
-                            payment.getType() + " | "
-                                    + payment.getMaster() + " | "
-                                    + payment.getFormattedDateTime() + " | "
-                                    + payment.getDetails() + " | "
-                                    + payment.getAmount() + " грн"
-                    );
-                }
-            }
-
-            // Перевірка зайнятості майстра
-            System.out.println("\nПеревірка зайнятості:");
+            System.out.print("Введіть послугу: ");
+            String service = scanner.nextLine().trim();
 
             System.out.print("Введіть ім'я майстра: ");
-            String master = scanner.nextLine();
+            String master = scanner.nextLine().trim();
 
-            System.out.print(
-                    "Введіть дату (yyyy-MM-dd): "
-            );
-
-            String date = scanner.nextLine();
+            System.out.print("Введіть дату (yyyy-MM-dd): ");
+            String date = scanner.nextLine().trim();
 
             System.out.print("Введіть час (HH:mm): ");
-            String time = scanner.nextLine();
+            String time = scanner.nextLine().trim();
+
+            System.out.print("Введіть побажання: ");
+            String details = scanner.nextLine();
 
             LocalDateTime dateTime = LocalDateTime.parse(
                     date + "T" + time
             );
 
-            boolean busy = isMasterBusy(master, dateTime);
+            // Перевірка зайнятості перед бронюванням
+            if (isMasterBusy(master, dateTime)) {
 
-            if (busy) {
+                System.out.println(
+                        "Майстер вже зайнятий на цей час!"
+                );
+
+                return;
+            }
+
+            System.out.println("Майстер вільний!");
+
+            // Створення об'єкта бронювання
+            // Фактичну вартість визначає сервер
+            Payment payment = new Payment(
+                    service,
+                    master,
+                    details,
+                    700.0,
+                    dateTime
+            );
+
+            // Надсилання бронювання на сервер
+            addPayment(payment);
+
+            System.out.println(
+                    "Бронювання успішно створено!"
+            );
+
+            // Отримання оновленої історії
+            printHistory();
+
+            // Перевірка зайнятості після бронювання
+            System.out.println(
+                    "\nПеревірка зайнятості після бронювання:"
+            );
+
+            if (isMasterBusy(master, dateTime)) {
 
                 System.out.println(
                         "Майстер зайнятий на цей час!"
                 );
 
+                System.out.println("Тест: PASSED");
+
             } else {
 
                 System.out.println(
-                        "Майстер не має запису на цей час!"
+                        "Помилка: майстер залишився вільним!"
                 );
+
+                System.out.println("Тест: FAILED");
             }
+
+            // Перевірка повторного бронювання
+            System.out.println(
+                    "\nПеревірка подвійного бронювання:"
+            );
+
+            int historySizeBefore = getHistory().size();
+
+            boolean rejected = false;
+
+            try {
+
+                addPayment(payment);
+
+                System.out.println(
+                        "Помилка: повторне бронювання дозволено!"
+                );
+
+            } catch (IllegalArgumentException e) {
+
+                rejected = true;
+
+                System.out.println(
+                        "Сервер відхилив повторне бронювання:"
+                );
+
+                System.out.println(e.getMessage());
+            }
+
+            int historySizeAfter = getHistory().size();
+
+            if (rejected
+                    && historySizeBefore == historySizeAfter) {
+
+                System.out.println("Тест: PASSED");
+
+            } else {
+
+                System.out.println("Тест: FAILED");
+            }
+
+            // Остаточна історія візитів
+            printHistory();
 
         } catch (Exception e) {
 
-            System.out.println("Помилка: " + e.getMessage());
+            System.out.println(
+                    "Помилка: " + e.getMessage()
+            );
 
         } finally {
 
@@ -434,6 +527,8 @@ public class ApiClient {
                     System.out.println(e.getMessage());
                 }
             }
+
+            scanner.close();
         }
     }
 }
