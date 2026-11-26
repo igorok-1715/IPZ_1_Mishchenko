@@ -128,9 +128,15 @@ public class UserStore {
     }
 
     // Авторизація користувача
+
     public static void login(String login, String password) {
 
         currentUser = null;
+        currentUser = authenticate(login, password);
+    }
+
+    // Перевірка облікових даних без зміни сесії
+    public static User authenticate(String login, String password) {
 
         if (login == null || login.isBlank()
                 || password == null || password.isBlank()) {
@@ -144,9 +150,9 @@ public class UserStore {
         String phone = normalizePhone(login);
 
         String sql = """
-                SELECT * FROM users
-                WHERE email = ? OR phone = ?
-                """;
+            SELECT * FROM users
+            WHERE email = ? OR phone = ?
+            """;
 
         try (Connection connection = Database.connect();
              PreparedStatement statement =
@@ -165,24 +171,20 @@ public class UserStore {
                     if (PasswordUtils.verifyPassword(
                             password, passwordHash)) {
 
-                        currentUser = new User(
+                        return new User(
                                 result.getInt("id"),
                                 result.getString("username"),
                                 result.getString("phone"),
                                 result.getString("email")
                         );
-
-                        return;
                     }
                 }
             }
 
         } catch (SQLException e) {
 
-            e.printStackTrace();
-
-            throw new IllegalArgumentException(
-                    "Помилка підключення до бази даних!"
+            throw new IllegalStateException(
+                    "Помилка бази даних!", e
             );
         }
 
@@ -207,9 +209,15 @@ public class UserStore {
     }
 
     // Збереження запису на процедуру
-    public static void addPayment(Payment payment) {
 
-        if (currentUser == null) {
+    public static void addPayment(Payment payment) {
+        addPayment(currentUser, payment);
+    }
+
+    // Збереження запису конкретного користувача
+    public static void addPayment(User user, Payment payment) {
+
+        if (user == null) {
             throw new IllegalStateException(
                     "Спочатку авторизуйтеся!"
             );
@@ -244,17 +252,17 @@ public class UserStore {
         }
 
         String sql = """
-                INSERT INTO appointments
-                (user_id, service, master,
-                 visit_datetime, details, amount)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """;
+            INSERT INTO appointments
+            (user_id, service, master,
+             visit_datetime, details, amount)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """;
 
         try (Connection connection = Database.connect();
              PreparedStatement statement =
                      connection.prepareStatement(sql)) {
 
-            statement.setInt(1, currentUser.getId());
+            statement.setInt(1, user.getId());
             statement.setString(2, payment.getType());
             statement.setString(3, payment.getMaster());
 
@@ -269,8 +277,6 @@ public class UserStore {
 
         } catch (SQLException e) {
 
-            e.printStackTrace();
-
             if (e.getMessage() != null
                     && e.getMessage().contains(
                     "UNIQUE constraint failed")) {
@@ -280,32 +286,39 @@ public class UserStore {
                 );
             }
 
-            throw new IllegalArgumentException(
-                    "Не вдалося зберегти запис!"
+            throw new IllegalStateException(
+                    "Не вдалося зберегти запис!", e
             );
         }
     }
 
+
     // Отримання історії візитів
+
     public static List<Payment> getHistory() {
+        return getHistory(currentUser);
+    }
+
+    // Отримання історії конкретного користувача
+    public static List<Payment> getHistory(User user) {
 
         List<Payment> history = new ArrayList<>();
 
-        if (currentUser == null) {
+        if (user == null) {
             return history;
         }
 
         String sql = """
-                SELECT * FROM appointments
-                WHERE user_id = ?
-                ORDER BY visit_datetime DESC
-                """;
+            SELECT * FROM appointments
+            WHERE user_id = ?
+            ORDER BY visit_datetime DESC
+            """;
 
         try (Connection connection = Database.connect();
              PreparedStatement statement =
                      connection.prepareStatement(sql)) {
 
-            statement.setInt(1, currentUser.getId());
+            statement.setInt(1, user.getId());
 
             try (ResultSet result = statement.executeQuery()) {
 
@@ -326,8 +339,6 @@ public class UserStore {
             }
 
         } catch (SQLException e) {
-
-            e.printStackTrace();
 
             throw new IllegalStateException(
                     "Не вдалося завантажити історію!", e
